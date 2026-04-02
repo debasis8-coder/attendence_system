@@ -9,9 +9,9 @@ from check_d import Emb_vec
 # ---------------- CONFIG ----------------
 st.set_page_config(page_title="Face Attendance System", layout="wide")
 
-DATASET_PATH = "/attendence_system/face_dataset/"
-TEST_IMG_PATH = "/attendence_system/test_face/test.jpg"
-CHECK_FILE = "/attendence_system/check_face.txt"
+DATASET_PATH = "attendence_system/face_dataset/"
+TEST_IMG_PATH = "attendence_system/test_face/test.jpg"
+CHECK_FILE = "attendence_system/check_face.txt"
 
 os.makedirs(DATASET_PATH, exist_ok=True)
 os.makedirs("test_face", exist_ok=True)
