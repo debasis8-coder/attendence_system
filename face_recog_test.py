@@ -7,70 +7,79 @@ from facenet_pytorch import MTCNN
 from check_d import Emb_vec
 
 # ---------------- CONFIG ----------------
-st.set_page_config(page_title="Face Attendance System", layout="wide")
+st.set_page_config(page_title="Face Attendance System", layout="centered")
 
-DATASET_PATH = "face_dataset/"
-TEST_IMG_PATH = "test_face/test.jpg"
-CHECK_FILE = "check_face.txt"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+DATASET_PATH = os.path.join(BASE_DIR, "face_dataset")
+TEST_IMG_PATH = os.path.join(BASE_DIR, "test_face", "test.jpg")
+CHECK_FILE = os.path.join(BASE_DIR, "check_face.txt")
 
 os.makedirs(DATASET_PATH, exist_ok=True)
-os.makedirs("test_face", exist_ok=True)
+os.makedirs(os.path.dirname(TEST_IMG_PATH), exist_ok=True)
 
-# ---------------- HEADER ----------------
+# ---------------- SESSION STATE ----------------
+if "unknown_face" not in st.session_state:
+    st.session_state.unknown_face = None
+
+# ---------------- TITLE ----------------
 st.title("🎯 Face Recognition System")
 
-# ---------------- SIDEBAR ----------------
-st.sidebar.header("Controls")
-name = st.sidebar.text_input("Enter Name")
-
-# ---------------- REGISTER ----------------
-st.sidebar.subheader("Register Face")
-register_img = st.sidebar.camera_input("Capture for Registration")
-
-if register_img is not None and name.strip():
-    file_bytes = np.asarray(bytearray(register_img.read()), dtype=np.uint8)
-    frame = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-
-    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-    mtcnn = MTCNN(image_size=160)
-
-    save_path = os.path.join(DATASET_PATH, f"{name}.jpg")
-    mtcnn(frame_rgb, save_path)
-
-    st.sidebar.success(f"{name} registered successfully")
-
-# ---------------- RECOGNITION ----------------
-st.subheader("Recognize Face")
-
+# ---------------- CAMERA INPUT ----------------
+st.subheader("📷 Capture Face")
 img_file = st.camera_input("Take a picture")
 
 if img_file is not None:
-    # Convert to OpenCV image
+    # Convert uploaded file to OpenCV image
     file_bytes = np.asarray(bytearray(img_file.read()), dtype=np.uint8)
     frame = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
     st.image(frame, channels="BGR", caption="Captured Image")
 
-    # Save image
+    # Save captured image for model
     cv2.imwrite(TEST_IMG_PATH, frame)
     time.sleep(0.1)
 
-    # Run model
+    # Run recognition model
     try:
-        Emb_vec().check()
+        Emb_vec().check()  # Your face embedding check function
     except Exception as e:
         st.error(f"Model error: {e}")
 
-    # Read result
+    # Read result from check file
     if os.path.exists(CHECK_FILE):
         with open(CHECK_FILE, "r") as f:
             data = f.read().strip()
 
             if data:
                 person = data.split(":")[-1]
-                st.success(f"✅ Recognized: {person}")
+
+                if person != "Unknown":
+                    st.success(f"✅ Recognized: {person}")
+                    st.session_state.unknown_face = None
+                else:
+                    st.warning("⚠️ Unknown person detected")
+                    st.session_state.unknown_face = frame
             else:
-                st.warning("⚠️ Unknown person")
-    else:
-        st.warning("⚠️ No prediction file found")
+                st.warning("⚠️ Unknown person detected")
+                st.session_state.unknown_face = frame
+
+# ---------------- REGISTER NEW FACE ----------------
+if st.session_state.unknown_face is not None:
+    st.subheader("📝 Register New Person")
+
+    name = st.text_input("Enter Name")
+
+    if st.button("Register"):
+        if name.strip():
+            mtcnn = MTCNN(image_size=160)
+            frame_rgb = cv2.cvtColor(st.session_state.unknown_face, cv2.COLOR_BGR2RGB)
+            save_path = os.path.join(DATASET_PATH, f"{name}.jpg")
+            mtcnn(frame_rgb, save_path)
+
+            st.success(f"{name} registered successfully")
+
+            # Clear unknown face state
+            st.session_state.unknown_face = None
+        else:
+            st.error("⚠️ Please enter a valid name")
