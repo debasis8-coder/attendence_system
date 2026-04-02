@@ -28,7 +28,7 @@ class Emb_vec:
         for k in data_known:
         
             j1=k.split('.')[0] 
-            known_img=Image.open(f"face dataset/"+f"{j1}.jpg").convert('RGB')
+            known_img=Image.open(f"face_dataset/"+f"{j1}.jpg").convert('RGB')
             known_ten=transform1(known_img)
             known_emb=resnet(known_ten.unsqueeze(0).to('cpu'))
             emb.append(known_emb)
