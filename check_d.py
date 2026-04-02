@@ -50,7 +50,7 @@ class Emb_vec:
                 prob.append(recg)
             print(prob)
             val=max(prob)
-            if val>0.6:
+            if val>0.7:
                 
                 file=open('check_face.txt','w')
                 file.write(f"NAME:{clas[prob.index(val)]}")
