@@ -22,20 +22,20 @@ class Emb_vec:
 
         emb=[]
         clas=[]
-        data_known=sorted(os.listdir('/home/lonewolf8/Desktop/face recognition/face dataset'))
+        data_known=sorted(os.listdir('attendence_system/face dataset'))
         for names in data_known:
             clas.append(names.split('.')[0])
         for k in data_known:
         
             j1=k.split('.')[0] 
-            known_img=Image.open(f"/home/lonewolf8/Desktop/face recognition/face dataset/"+f"{j1}.jpg").convert('RGB')
+            known_img=Image.open(f"attendence_system/face dataset/"+f"{j1}.jpg").convert('RGB')
             known_ten=transform1(known_img)
             known_emb=resnet(known_ten.unsqueeze(0).to('cpu'))
             emb.append(known_emb)
         
         #print(emb)
 
-        image=Image.open('/home/lonewolf8/Desktop/face recognition/test_face/test.jpg')
+        image=Image.open('attendence_system/test_face/test.jpg')
         img_cropped = mtcnn(image)
         ################################################
 
@@ -52,12 +52,12 @@ class Emb_vec:
             val=max(prob)
             if val>0.6:
                 
-                file=open('/home/lonewolf8/Desktop/face recognition/check_face.txt','w')
+                file=open('attendence_system/check_face.txt','w')
                 file.write(f"NAME:{clas[prob.index(val)]}")
                 print(clas[prob.index(val)],prob)
             
         else:
-            file=open('/home/lonewolf8/Desktop/face recognition/check_face.txt','w')
+            file=open('attendence_system/check_face.txt','w')
             file.write('')
 
 if __name__=='__main__':
