@@ -8,9 +8,9 @@ from check_d import Emb_vec
 # ---------------- CONFIG ----------------
 st.set_page_config(page_title="Face Attendance System", layout="wide")
 
-DATASET_PATH = "/home/lonewolf8/Desktop/face recognition/face dataset/"
-TEST_IMG_PATH = "/home/lonewolf8/Desktop/face recognition/test_face/test.jpg"
-CHECK_FILE = "/home/lonewolf8/Desktop/face recognition/check_face.txt"
+DATASET_PATH = "attendence_system/face dataset/"
+TEST_IMG_PATH = "attendence_system/test_face/test.jpg"
+CHECK_FILE = "attendence_system/check_face.txt"
 
 # ---------------- SESSION ----------------
 if "camera_on" not in st.session_state:
