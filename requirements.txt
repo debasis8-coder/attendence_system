@@ -1,8 +1,8 @@
-numpy==1.26.4
-opencv-python-headless
-torch
-torchvision
-facenet-pytorch==2.5.3
-streamlit==1.30.0
+torch==2.2.0
+torchvision==0.17.1
+facenet-pytorch==2.9.0
+streamlit==1.33.0
+opencv-python-headless==4.9.0.80
+numpy==1.24.4
 fastapi
 uvicorn
