@@ -1,6 +1,7 @@
 import streamlit as st
 import cv2
 import os
+import numpy as np
 import time
 from facenet_pytorch import MTCNN
 from check_d import Emb_vec
@@ -8,100 +9,68 @@ from check_d import Emb_vec
 # ---------------- CONFIG ----------------
 st.set_page_config(page_title="Face Attendance System", layout="wide")
 
-DATASET_PATH = "attendence_system/face dataset/"
+DATASET_PATH = "attendence_system/face_dataset/"
 TEST_IMG_PATH = "attendence_system/test_face/test.jpg"
 CHECK_FILE = "attendence_system/check_face.txt"
 
-# ---------------- SESSION ----------------
-if "camera_on" not in st.session_state:
-    st.session_state.camera_on = False
-
-if "captured_frame" not in st.session_state:
-    st.session_state.captured_frame = None
-
-if "prediction" not in st.session_state:
-    st.session_state.prediction = ""
+os.makedirs(DATASET_PATH, exist_ok=True)
+os.makedirs("test_face", exist_ok=True)
 
 # ---------------- HEADER ----------------
 st.title("🎯 Face Recognition System")
 
 # ---------------- SIDEBAR ----------------
 st.sidebar.header("Controls")
-
 name = st.sidebar.text_input("Enter Name")
 
-# -------- REGISTER --------
-if st.sidebar.button("📸 Register Face"):
-    cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
-    ret, frame = cap.read()
-    cap.release()
+# ---------------- REGISTER ----------------
+st.sidebar.subheader("Register Face")
+register_img = st.sidebar.camera_input("Capture for Registration")
 
-    if ret and name.strip():
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        mtcnn = MTCNN(image_size=160)
-        mtcnn(frame, DATASET_PATH + f"{name}.jpg")
-        st.success(f"{name} registered")
+if register_img is not None and name.strip():
+    file_bytes = np.asarray(bytearray(register_img.read()), dtype=np.uint8)
+    frame = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+
+    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+    mtcnn = MTCNN(image_size=160)
+
+    save_path = os.path.join(DATASET_PATH, f"{name}.jpg")
+    mtcnn(frame_rgb, save_path)
+
+    st.sidebar.success(f"{name} registered successfully")
+
+# ---------------- RECOGNITION ----------------
+st.subheader("Recognize Face")
+
+img_file = st.camera_input("Take a picture")
+
+if img_file is not None:
+    # Convert to OpenCV image
+    file_bytes = np.asarray(bytearray(img_file.read()), dtype=np.uint8)
+    frame = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+
+    st.image(frame, channels="BGR", caption="Captured Image")
+
+    # Save image
+    cv2.imwrite(TEST_IMG_PATH, frame)
+    time.sleep(0.1)
+
+    # Run model
+    try:
+        Emb_vec().check()
+    except Exception as e:
+        st.error(f"Model error: {e}")
+
+    # Read result
+    if os.path.exists(CHECK_FILE):
+        with open(CHECK_FILE, "r") as f:
+            data = f.read().strip()
+
+            if data:
+                person = data.split(":")[-1]
+                st.success(f"✅ Recognized: {person}")
+            else:
+                st.warning("⚠️ Unknown person")
     else:
-        st.error("Camera or name error")
-
-# -------- CAMERA CONTROL --------
-if st.sidebar.button("▶ Start Camera"):
-    st.session_state.camera_on = True
-
-if st.sidebar.button("⏹ Stop Camera"):
-    st.session_state.camera_on = False
-
-# ---------------- CAMERA STREAM ----------------
-frame_placeholder = st.empty()
-
-if st.session_state.camera_on:
-    cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
-
-    ret, frame = cap.read()
-    cap.release()
-
-    if ret:
-        frame = cv2.flip(frame, 1)
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-        frame_placeholder.image(frame_rgb, channels="RGB")
-
-        # Save latest frame in session
-        st.session_state.captured_frame = frame.copy()
-
-# ---------------- CAPTURE BUTTON ----------------
-if st.button("📷 Capture & Predict"):
-
-    frame = st.session_state.get("captured_frame", None)
-
-    if frame is None:
-        st.error("Start camera first")
-    else:
-        # Save image
-        cv2.imwrite(TEST_IMG_PATH, frame)
-        time.sleep(0.1)
-
-        # Run model
-        try:
-            Emb_vec().check()
-        except Exception as e:
-            st.error(f"Model error: {e}")
-
-        # Read result
-        if os.path.exists(CHECK_FILE):
-            with open(CHECK_FILE, "r") as f:
-                data = f.read().strip()
-
-                if data:
-                    st.session_state.prediction = data.split(":")[-1]
-                else:
-                    st.session_state.prediction = "Unknown"
-        else:
-            st.session_state.prediction = "Unknown"
-
-# ---------------- RESULT ----------------
-if st.session_state.prediction:
-    if st.session_state.prediction != "Unknown":
-        st.success(f"✅ Recognized: {st.session_state.prediction}")
-    else:
-        st.warning("⚠️ Unknown person")
+        st.warning("⚠️ No prediction file found")
