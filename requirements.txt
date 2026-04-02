@@ -1,1 +1,8 @@
-
+numpy==1.26.4
+opencv-python-headless==4.7.0.72
+torch==2.1.0
+torchvision==0.16.0
+facenet-pytorch==2.5.3
+streamlit==1.30.0
+fastapi
+uvicorn
