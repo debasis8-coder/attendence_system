@@ -23,7 +23,7 @@ if "unknown_face" not in st.session_state:
     st.session_state.unknown_face = None
 
 # ---------------- TITLE ----------------
-st.title("🎯 Face Recognition System")
+st.title("🎯 Smart AI Attendence System")
 
 # ---------------- CAMERA INPUT ----------------
 st.subheader("📷 Capture Face")
