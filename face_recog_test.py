@@ -7,7 +7,7 @@ from facenet_pytorch import MTCNN
 from check_d import Emb_vec
 
 # ---------------- CONFIG ----------------
-st.set_page_config(page_title="Face Attendance System", layout="centered")
+st.set_page_config(page_title="AI Attendance System", layout="centered")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
