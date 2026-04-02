@@ -22,7 +22,7 @@ class Emb_vec:
 
         emb=[]
         clas=[]
-        data_known=sorted(os.listdir('face dataset'))
+        data_known=sorted(os.listdir('face_dataset'))
         for names in data_known:
             clas.append(names.split('.')[0])
         for k in data_known:
